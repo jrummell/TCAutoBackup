@@ -1,69 +1,85 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Configuration;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
+using CommandLine;
 
 namespace TCAutoBackup
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
-            CleanupBackupDirectory();
+            BackupCommandLineOptions options = new BackupCommandLineOptions();
 
-            SendBackupRequest();
+            if (args != null && args.Length > 0)
+            {
+                ICommandLineParser commandLineParser = new CommandLineParser();
+                commandLineParser.ParseArguments(args, options);
+            }
+            else
+            {
+                NameValueCollection settings = ConfigurationManager.AppSettings;
+                options.TeamCityServerUrl = settings["TeamCityServerUrl"];
+                options.FileName = settings["FileName"];
+                options.AddTimestamp = Convert.ToBoolean(settings["AddTimestamp"]);
+                options.IncludeConfigs = Convert.ToBoolean(settings["IncludeConfigs"]);
+                options.IncludeDatabase = Convert.ToBoolean(settings["IncludeDatabase"]);
+                options.IncludeBuildLogs = Convert.ToBoolean(settings["IncludeBuildLogs"]);
+                options.IncludePersonalChanges = Convert.ToBoolean(settings["IncludePersonalChanges"]);
+                options.AuthUserName = settings["AuthUserName"];
+                options.AuthPassword = settings["AuthPassword"];
+                options.BackupPath = settings["BackupPath"];
+                options.NumberOfDaysToKeepBackups = Convert.ToInt32(settings["NumberOfDaysToKeepBackups"]);
+            }
+
+            CleanupBackupDirectory(options.BackupPath, options.NumberOfDaysToKeepBackups);
+
+            SendBackupRequest(options);
         }
 
-        private static void SendBackupRequest()
+        private static void SendBackupRequest(BackupCommandLineOptions options)
         {
-            // make post request to initate backup
-            var teamcityServerUrl = ConfigurationManager.AppSettings["TeamCityServerUrl"];
-            var filename = ConfigurationManager.AppSettings["FileName"];
-            var addTimestamp = Convert.ToBoolean(ConfigurationManager.AppSettings["AddTimestamp"]);
-            var includeConfigs = Convert.ToBoolean(ConfigurationManager.AppSettings["IncludeConfigs"]);
-            var includeDatabase = Convert.ToBoolean(ConfigurationManager.AppSettings["IncludeDatabase"]);
-            var includeBuildLogs = Convert.ToBoolean(ConfigurationManager.AppSettings["IncludeBuildLogs"]);
-            var includePersonalChanges = Convert.ToBoolean(ConfigurationManager.AppSettings["IncludePersonalChanges"]);
+            // make post request to initiate backup
+            string teamCityServerUrl = options.TeamCityServerUrl;
 
             // append '/' to base url if it's not already there
-            if (!teamcityServerUrl.EndsWith("/"))
+            if (!teamCityServerUrl.EndsWith("/"))
             {
-                teamcityServerUrl += "/";
+                teamCityServerUrl += "/";
             }
 
             // make request
-            var requestUri =
-                "/httpAuth/app/rest/server/backup" +
-                "?includeConfigs=" + includeConfigs +
-                "&includeDatabase={2}" + includeDatabase +
-                "&includeBuildLogs={3}" + includeBuildLogs +
-                "&fileName=" + filename +
-                "&addTimestamp" + addTimestamp +
-                "&includePersonalChanges" + includePersonalChanges;
+            string requestUri =
+                string.Format(
+                    "/httpAuth/app/rest/server/backup?includeConfigs={0}&includeDatabase={1}&includeBuildLogs={2}&fileName={3}&addTimestamp={4}&includePersonalChanges={5}",
+                    options.IncludeConfigs,
+                    options.IncludeDatabase,
+                    options.IncludeBuildLogs,
+                    options.FileName,
+                    options.AddTimestamp,
+                    options.IncludePersonalChanges);
 
             var handler = new HttpClientHandler
-            {
-                Credentials = new NetworkCredential
-                {
-                    UserName = ConfigurationManager.AppSettings["AuthUserName"],
-                    Password = ConfigurationManager.AppSettings["AuthPassword"]
-                }
-            };
+                          {
+                              Credentials = new NetworkCredential
+                                            {
+                                                UserName = options.AuthUserName,
+                                                Password = options.AuthPassword
+                                            }
+                          };
             var client = new HttpClient(handler)
-            {
-                BaseAddress = new Uri(teamcityServerUrl)
-            };
-            
+                         {
+                             BaseAddress = new Uri(teamCityServerUrl)
+                         };
+
             var result = client.PostAsync(requestUri, null).Result;
 
             if (result.StatusCode == HttpStatusCode.OK)
             {
-                Console.WriteLine("Returned status-code was 200 - OK. Backup succcessful");
+                Console.WriteLine("Returned status-code was 200 - OK. Backup successful");
             }
             else
             {
@@ -72,13 +88,15 @@ namespace TCAutoBackup
             }
         }
 
-        private static void CleanupBackupDirectory()
+        private static void CleanupBackupDirectory(string backupPath, int numberOfDaysToKeepBackups)
         {
             Console.WriteLine("Cleanup backup directory");
-            var backupPath = ConfigurationManager.AppSettings["BackupPath"];
-            var numberOfDaysToKeepBackups = Convert.ToInt32(ConfigurationManager.AppSettings["NumberOfDaysToKeepBackups"]);
 
             // delete files older than a number of days days
+            if (!Directory.Exists(backupPath))
+            {
+                return;
+            }
             var files = Directory.GetFiles(backupPath);
             foreach (string file in files)
             {
