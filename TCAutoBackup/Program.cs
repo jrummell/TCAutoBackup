@@ -12,12 +12,15 @@ namespace TCAutoBackup
     {
         private static void Main(string[] args)
         {
+            // see https://github.com/gsscoder/commandline
             BackupCommandLineOptions options = new BackupCommandLineOptions();
 
             if (args != null && args.Length > 0)
             {
-                ICommandLineParser commandLineParser = new CommandLineParser();
-                commandLineParser.ParseArguments(args, options);
+                if (!Parser.Default.ParseArguments(args, options))
+                {
+                    return;
+                }
             }
             else
             {
@@ -72,10 +75,10 @@ namespace TCAutoBackup
                           };
             var client = new HttpClient(handler)
                          {
-                             BaseAddress = new Uri(teamCityServerUrl)
+                             BaseAddress = new Uri(teamCityServerUrl, UriKind.Absolute)
                          };
 
-            var result = client.PostAsync(requestUri, null).Result;
+            var result = client.PostAsync(new Uri(requestUri, UriKind.Relative), null).Result;
 
             if (result.StatusCode == HttpStatusCode.OK)
             {
