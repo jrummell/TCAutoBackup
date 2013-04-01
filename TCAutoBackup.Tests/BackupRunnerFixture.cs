@@ -46,6 +46,8 @@ namespace TCAutoBackup.Tests
 
             mockFileSystem.Verify(fs => fs.DeleteFile(mockTodayFile.Object.FullName), Times.Never());
             mockFileSystem.Verify();
+            mockTodayFile.Verify();
+            mockLastMonthFile.Verify();
         }
     }
 }
