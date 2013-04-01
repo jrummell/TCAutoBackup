@@ -36,7 +36,7 @@ namespace TCAutoBackup
         [Option('l', "includeBuildLogs", DefaultValue = true)]
         public bool IncludeBuildLogs { get; set; }
 
-        [Option('h', "includePersonalChanges", DefaultValue = true)]
+        [Option('g', "includePersonalChanges", DefaultValue = true)]
         public bool IncludePersonalChanges { get; set; }
 
         [HelpOption('?', "help")]
