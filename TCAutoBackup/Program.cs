@@ -106,7 +106,7 @@ namespace TCAutoBackup
             foreach (string file in files)
             {
                 var fi = new FileInfo(file);
-                if (fi.LastAccessTime < DateTime.Now.AddDays(-numberOfDaysToKeepBackups))
+                if (fi.LastWriteTime < DateTime.Now.AddDays(-numberOfDaysToKeepBackups))
                 {
                     Console.WriteLine("Deleting file {0}", file);
                     fi.Delete();
