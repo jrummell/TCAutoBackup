@@ -10,7 +10,7 @@ namespace TCAutoBackup
 {
     internal class Program
     {
-        private static void Main(string[] args)
+        private static int Main(string[] args)
         {
             // see https://github.com/gsscoder/commandline
             BackupCommandLineOptions options = new BackupCommandLineOptions();
@@ -19,7 +19,7 @@ namespace TCAutoBackup
             {
                 if (!Parser.Default.ParseArguments(args, options))
                 {
-                    return;
+                    return 1;
                 }
             }
             else
@@ -41,6 +41,8 @@ namespace TCAutoBackup
             CleanupBackupDirectory(options.BackupPath, options.NumberOfDaysToKeepBackups);
 
             SendBackupRequest(options);
+
+            return 0;
         }
 
         private static void SendBackupRequest(BackupCommandLineOptions options)
@@ -93,7 +95,7 @@ namespace TCAutoBackup
 
         private static void CleanupBackupDirectory(string backupPath, int numberOfDaysToKeepBackups)
         {
-            Console.WriteLine("Cleanup backup directory");
+            Console.WriteLine("Cleaning up backup directory ...");
 
             // delete files older than a number of days days
             if (!Directory.Exists(backupPath))
