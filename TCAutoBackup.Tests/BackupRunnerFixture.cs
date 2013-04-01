@@ -19,7 +19,7 @@ namespace TCAutoBackup.Tests
                 .Verifiable();
 
             Mock<IFileSystemInfo> mockTodayFile = new Mock<IFileSystemInfo>();
-            mockTodayFile.SetupGet(file => file.LastWriteTime)
+            mockTodayFile.SetupGet(file => file.CreationTime)
                 .Returns(DateTime.Today)
                 .Verifiable();
             mockTodayFile.SetupGet(file => file.FullName)
@@ -27,7 +27,7 @@ namespace TCAutoBackup.Tests
                 .Verifiable();
 
             Mock<IFileSystemInfo> mockLastMonthFile = new Mock<IFileSystemInfo>();
-            mockLastMonthFile.SetupGet(file => file.LastWriteTime)
+            mockLastMonthFile.SetupGet(file => file.CreationTime)
                 .Returns(DateTime.Today.AddDays(-35))
                 .Verifiable();
             mockLastMonthFile.SetupGet(file => file.FullName)

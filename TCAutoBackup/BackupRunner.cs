@@ -42,20 +42,20 @@ namespace TCAutoBackup
                     _options.AddTimestamp,
                     _options.IncludePersonalChanges);
 
-            var handler = new HttpClientHandler
-                          {
-                              Credentials = new NetworkCredential
-                                            {
-                                                UserName = _options.AuthUserName,
-                                                Password = _options.AuthPassword
-                                            }
-                          };
-            var client = new HttpClient(handler)
-                         {
-                             BaseAddress = new Uri(teamCityServerUrl, UriKind.Absolute)
-                         };
+            HttpClientHandler handler = new HttpClientHandler
+                                        {
+                                            Credentials = new NetworkCredential
+                                                          {
+                                                              UserName = _options.AuthUserName,
+                                                              Password = _options.AuthPassword
+                                                          }
+                                        };
+            HttpClient client = new HttpClient(handler)
+                                {
+                                    BaseAddress = new Uri(teamCityServerUrl, UriKind.Absolute)
+                                };
 
-            var result = client.PostAsync(new Uri(requestUri, UriKind.Relative), null).Result;
+            HttpResponseMessage result = client.PostAsync(new Uri(requestUri, UriKind.Relative), null).Result;
 
             if (result.StatusCode == HttpStatusCode.OK)
             {
@@ -77,7 +77,7 @@ namespace TCAutoBackup
                 return;
             }
             var files = _fileSystem.GetFiles(_options.BackupPath)
-                .Where(file => file.LastWriteTime < DateTime.Now.AddDays(-_options.NumberOfDaysToKeepBackups));
+                .Where(file => file.CreationTime < DateTime.Now.AddDays(-_options.NumberOfDaysToKeepBackups));
 
             foreach (var file in files)
             {

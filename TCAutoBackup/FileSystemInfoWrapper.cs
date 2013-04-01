@@ -18,9 +18,9 @@ namespace TCAutoBackup
 
         #region IFileSystemInfo Members
 
-        public DateTime LastWriteTime
+        public DateTime CreationTime
         {
-            get { return _fileSystemInfo.LastWriteTime; }
+            get { return _fileSystemInfo.CreationTime; }
         }
 
         public string FullName

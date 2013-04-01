@@ -18,7 +18,7 @@ namespace TCAutoBackup
         [Option('b', "backupPath", Required = true)]
         public string BackupPath { get; set; }
 
-        [Option('h', "numberOfDaysToKeepBackups", DefaultValue = 7)]
+        [Option('h', "numberOfDaysToKeepBackups", DefaultValue = 30)]
         public int NumberOfDaysToKeepBackups { get; set; }
 
         [Option('f', "filename")]
